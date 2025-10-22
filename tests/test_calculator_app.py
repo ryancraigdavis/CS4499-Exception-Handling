@@ -61,29 +61,39 @@ def test_calculate(mock_calculator, mocker, operation, a, b, expected):
 def test_perform_operation(
     mock_calculator, mocker, operation, a, b, expected, error_found, error_type
 ):
-    """Test perform_operation() for both successful operations and exception handling."""
+    """Test perform_operation() for both successful operations and exception handling"""
     mock_print = mocker.patch("builtins.print")
-    if error_found:
-        mocker.patch.object(
-            mock_calculator,
-            "divide",
-            side_effect=DivisionByZeroError(f"Cannot divide {a} by zero"),
-        )
+    caught_error = None
 
+    if error_found:
+        mock_calculator.divide.side_effect = lambda *args, **kwargs: (
+            _ for _ in ()
+        ).throw(DivisionByZeroError(f"Cannot divide {a} by zero"))
     else:
         if operation == "divide":
             mocker.patch.object(mock_calculator, "divide", return_value=expected)
 
-    result = Calculator.perform_operation(
-        self=mock_calculator, operation=operation, a=a, b=b
-    )
+    try:
+        result = Calculator.perform_operation(
+            self=mock_calculator, operation=operation, a=a, b=b
+        )
+    except DivisionByZeroError as error:
+        caught_error = error
+        assert error_found, "Error should only be raised if error_found is True"
 
     if error_found:
+        assert (
+            caught_error is None
+        ), "Exception should be caught by perform_operation, not escape"
+
         mock_print.assert_called_once()
+
         assert result is None
-        mock_calculator.divide.assert_called_once_with(a, b)
     else:
         assert result == expected
+
+    if operation == "divide":
+        mock_calculator.divide.assert_called_once_with(a, b)
 
 
 @pytest.mark.parametrize(
