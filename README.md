@@ -1,6 +1,6 @@
 # Exception Handling Testing Examples
 
-This project demonstrates testing patterns for exception handling in Python, designed for an intermediate testing course.
+This project demonstrates testing patterns for exception handling in Python, designed for an intermediate testing course!
 
 ## Project Overview
 
